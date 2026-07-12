@@ -78,9 +78,12 @@ int main(int argc, char const* argv[])
     // terminator at the end
     send(client_fd, hello, strlen(hello), 0);
     printf("Send: %s\n", hello);
-    valread = read(client_fd, buffer,
+    
+    while(1) {
+        valread = read(client_fd, buffer,
                    1024 - 1); 
-    printf("Received: %s\n", buffer);
+        printf("Received: %s\n", buffer);
+    }
 
     // closing the connected socket
     close(client_fd);

@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <strings.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -15,14 +15,20 @@ void *handle_client(void *arg) {
     int new_socket = *(int *) arg;
     free(arg);
 
+    printf("New connection: %d\n", new_socket);
+
     char buffer[1024] = { 0 };
-    char *hello = "Hello from server";
+    ssize_t valread;
 
-    ssize_t valread = read(new_socket, buffer, 1024-1);
-    printf("%s\n", buffer);
-
-    send(new_socket, hello, strlen(hello), 0);
-    printf("Hello msg sent\n");
+    while(1) {
+        bzero(buffer, 1024 - 1);
+        if ((valread = read(new_socket, buffer, 1024-1)) <= 0) {
+            printf("Client disconnected\n");
+            break;
+        }
+        printf("Echoing back: %s\n", buffer);
+        send(new_socket, buffer, valread, 0);
+    }
 
     close(new_socket);
     return NULL;
@@ -30,7 +36,6 @@ void *handle_client(void *arg) {
 
 int main(int argc, char const* argv[]) {
     int server_fd, new_socket;
-    ssize_t valread;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
