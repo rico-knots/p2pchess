@@ -4,11 +4,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <threads.h>
 #include <time.h>
 #include <unistd.h>
+
 #define PORT 8080
 
 pid_t start_server(void) {
@@ -74,18 +76,27 @@ int main(int argc, char const* argv[])
 
     int client_fd = connect_with_retry("127.0.0.1", 20);
     
+    if (client_fd < 0) {
+        fprintf(stderr, "Failed to connect to server\n");
+        return 1;
+    }
+    
     // subtract 1 for the null
     // terminator at the end
     send(client_fd, hello, strlen(hello), 0);
     printf("Send: %s\n", hello);
-    
+
     while(1) {
-        valread = read(client_fd, buffer,
-                   1024 - 1); 
+        bzero(buffer, 1024 - 1);
+        
+        if ((valread = read(client_fd, buffer, 1024 - 1)) <= 0 ) {
+            printf("Connection closed\n");
+            break;
+        }
         printf("Received: %s\n", buffer);
     }
 
     // closing the connected socket
     close(client_fd);
     return 0;
-}   
+}
