@@ -18,7 +18,16 @@ int main(int argc, char const* argv[]) {
     socklen_t addrlen = sizeof(address);
     char buffer[1024] = { 0 };
     char* hello = "Hello from server";
+
+    char const* passcode = argv[1];
+    if (passcode == NULL) {
+        perror("Supply a passcode!\n");
+        exit(EXIT_FAILURE);
+        return 1;
+    }
     
+    printf("Passcode: %s\n", passcode);
+
     /*
         AF_INET = IPV4 | AF_LOCAL = LAN | AF_INET6 IPV6
         SOCK_STREAM = TCP connection | SOCK_DGRA = UDP connection
@@ -43,7 +52,7 @@ int main(int argc, char const* argv[]) {
         exit(EXIT_FAILURE);
     }
     if (listen(server_fd, 3) < 0) {
-        perror("listen");
+        perror("listen failed");
         exit(EXIT_FAILURE);
     } 
     
