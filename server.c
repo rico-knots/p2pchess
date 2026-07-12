@@ -2,6 +2,7 @@
 
 #include <asm-generic/socket.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,14 +11,29 @@
 
 #define PORT 8080
 
+void *handle_client(void *arg) {
+    int new_socket = *(int *) arg;
+    free(arg);
+
+    char buffer[1024] = { 0 };
+    char *hello = "Hello from server";
+
+    ssize_t valread = read(new_socket, buffer, 1024-1);
+    printf("%s\n", buffer);
+
+    send(new_socket, hello, strlen(hello), 0);
+    printf("Hello msg sent\n");
+
+    close(new_socket);
+    return NULL;
+}
+
 int main(int argc, char const* argv[]) {
     int server_fd, new_socket;
     ssize_t valread;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
-    char buffer[1024] = { 0 };
-    char* hello = "Hello from server";
 
     char const* passcode = argv[1];
     if (passcode == NULL) {
@@ -54,23 +70,30 @@ int main(int argc, char const* argv[]) {
     if (listen(server_fd, 3) < 0) {
         perror("listen failed");
         exit(EXIT_FAILURE);
-    } 
-    
+    }
+
+    // Handle incoming connections
     while(1) {
         if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
             perror("accept");
-            exit(EXIT_FAILURE);
+            continue;
         }
-        // subtract 1 for the null
-        // terminator at the end
-        valread = read(new_socket, buffer, 1024 - 1); 
-        printf("%s\n", buffer);
-        send(new_socket, hello, strlen(hello), 0);
-        printf("Hello message sent\n");
-        
-        // closing the connected socket
-        close(new_socket);
+
+        // heap allocate a copy of the new socket
+        int *sock_ptr = malloc(sizeof(int));
+        *sock_ptr = new_socket;
+
+        // Create thread
+        pthread_t tid;
+        if (pthread_create(&tid, NULL, handle_client, sock_ptr) != 0) {
+            perror("pthread create");
+            free(sock_ptr);
+            close(new_socket);
+            continue;
         }
+
+        pthread_detach(tid);
+    }
             
     // closing the listening socket
     close(server_fd);
