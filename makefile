@@ -4,7 +4,7 @@ build: src/**
 	echo "Finished"
 
 run: build
-	./out/client
+	./out/server hello & ./out/client
 
 hello:
 	echo "Hello"
