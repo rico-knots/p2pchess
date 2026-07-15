@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "packets.h"
+#include "protocol.h"
 
 #define PORT 8080
 
@@ -68,8 +69,7 @@ int connect_with_retry(const char *ip, int max_attempts) {
     return -1;
 }
 
-int main(int argc, char const* argv[])
-{
+int main(int argc, char const* argv[]) {
     int valread;
     char buffer[1024] = { 0 };
     char* hello = "hello there";

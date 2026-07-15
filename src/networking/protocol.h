@@ -3,4 +3,6 @@
 
 int send_packed();
 
+int sum(int a, int b);
+
 #endif
