@@ -27,6 +27,7 @@ void *handle_client(void *arg) {
             break;
         }
         printf("Echoing back: %s\n", buffer);
+        printf("Size of received on server: %ld\n", valread);
         send(new_socket, buffer, valread, 0);
     }
 

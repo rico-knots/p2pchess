@@ -11,7 +11,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "packets.h"
+
 #define PORT 8080
+
+typedef struct {
+    char name[32];
+    char last_name[32];
+} Person;
 
 pid_t start_server(void) {
     pid_t pid = fork();
@@ -67,12 +74,13 @@ int main(int argc, char const* argv[])
     char buffer[1024] = { 0 };
     char* hello = "hello there";
 
+    ChessResignPacket packet = { PKT_RESIGN };
+
     if (argv[1] != NULL && strcmp(argv[1], "serv") == 0) {
         printf("Starting server from client...");
         pid_t pid = start_server();
         if (pid < 0) return 1;
     }
-
 
     int client_fd = connect_with_retry("127.0.0.1", 20);
     
@@ -81,10 +89,11 @@ int main(int argc, char const* argv[])
         return 1;
     }
     
-    // subtract 1 for the null
-    // terminator at the end
-    send(client_fd, hello, strlen(hello), 0);
-    printf("Send: %s\n", hello);
+    // subtract 1 for the null terminator at the end
+    int bytes_send = send(client_fd, &packet, sizeof(packet), 0);
+    printf("Send: %d\n", packet.type);
+    printf("Send bytes from client: %d\n", bytes_send);
+    printf("Size of person: %ld\n", sizeof(Person));
 
     while(1) {
         bzero(buffer, 1024 - 1);

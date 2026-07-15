@@ -58,7 +58,6 @@ void init_starting_position() {
     black_pawns   = 0x00FF000000000000ULL;
 }
 
-
 // Print function
 void print_board(void) {
     printf("\n  +-----------------+\n");
