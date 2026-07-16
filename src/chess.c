@@ -34,11 +34,6 @@ U64 black_bishops = 0ULL;
 U64 black_queen   = 0ULL;
 U64 black_king    = 0ULL;
 
-typedef struct {
-    int x;
-    int y;
-} coord;
-
 // Set first bit, shift it by the square number to the right square
 void init_starting_position() {
     // White
@@ -99,15 +94,6 @@ void print_board(void) {
     // Print the file characters at the bottom
     printf("  +-----------------+\n");
     printf("    a b c d e f g h\n\n");
-}
-
-int *get_moves(char board[8][8], coord c) {
-    int* array = (int *)malloc(20 * sizeof(int));
-    return array;
-}
-
-int in_bounds(coord c) {
-    return c.x >= 0 && c.x <= 8 && c.y >= 0 && c.y <= 8;
 }
 
 int main() {

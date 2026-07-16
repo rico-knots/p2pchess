@@ -5,32 +5,40 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
+#include <time.h>
 #include <unistd.h>
 
 #define PORT 8080
 
+// Replace this the poll() eventually!
 void *handle_client(void *arg) {
     int new_socket = *(int *) arg;
     free(arg);
 
-    printf("New connection: %d\n", new_socket);
+    printf("\x1B[33m<server>\x1B[0m New connection: %d\n", new_socket);
 
-    char buffer[1024] = { 0 };
+    char buffer[1024];
     ssize_t valread;
 
+    struct timespec ts = {0, 100 * 1000 * 1000 * 20}; // 2000ms
+
     while(1) {
-        bzero(buffer, 1024 - 1);
+        memset(buffer, 0, 1024 - 1);
         if ((valread = read(new_socket, buffer, 1024-1)) <= 0) {
-            printf("Client disconnected\n");
+            printf("\x1B[33m<server>\x1B[0m Client disconnected\n");
             break;
         }
-        printf("Echoing back: %s\n", buffer);
-        printf("Size of received on server: %ld\n", valread);
+        printf("\x1B[33m<server>\x1B[0m Echoing back: %s\n", buffer);
+        printf("\x1B[33m<server>\x1B[0m Size of received on server: %ld\n", valread);
         send(new_socket, buffer, valread, 0);
-    }
 
+        nanosleep(&ts, NULL);
+
+        send(new_socket, "Hello there!!", sizeof("Hello there!!"), 0);
+    }
     close(new_socket);
     return NULL;
 }
@@ -48,7 +56,7 @@ int main(int argc, char const* argv[]) {
         return 1;
     }
     
-    printf("Passcode: %s\n", passcode);
+    printf("\x1B[33m<server>\x1B[0m Passcode: %s\n", passcode);
 
     /*
         AF_INET = IPV4 | AF_LOCAL = LAN | AF_INET6 IPV6
