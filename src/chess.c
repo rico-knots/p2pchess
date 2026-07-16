@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define SET_BIT(bitboard, square) ((bitboard) |= (1ULL << (square)))
 
@@ -18,43 +18,45 @@ enum squares {
     A8, B8, C8, D8, E8, F8, G8, H8
 };
 
-// White pieces occupy ranks 1 and 2
-U64 white_pawns   = 0ULL;
-U64 white_rooks   = 0ULL;
-U64 white_knights = 0ULL;
-U64 white_bishops = 0ULL;
-U64 white_queen   = 0ULL;
-U64 white_king    = 0ULL;
+typedef struct {
+    // White pieces occupy ranks 1 and 2
+    U64 white_pawns;
+    U64 white_rooks;
+    U64 white_knights;
+    U64 white_bishops;
+    U64 white_queen;
+    U64 white_king;
 
-// Black pieces occupy ranks 7 and 8
-U64 black_pawns   = 0ULL;
-U64 black_rooks   = 0ULL;
-U64 black_knights = 0ULL;
-U64 black_bishops = 0ULL;
-U64 black_queen   = 0ULL;
-U64 black_king    = 0ULL;
+    // Black pieces occupy ranks 7 and 8
+    U64 black_pawns;
+    U64 black_rooks;
+    U64 black_knights;
+    U64 black_bishops;
+    U64 black_queen;
+    U64 black_king;
+} ChessBoard;
 
 // Set first bit, shift it by the square number to the right square
-void init_starting_position() {
+void init_starting_position(ChessBoard *board) {
     // White
-    white_rooks   = (1ULL << A1) | (1ULL << H1);
-    white_knights = (1ULL << B1) | (1ULL << G1);
-    white_bishops = (1ULL << C1) | (1ULL << F1);
-    white_queen   = (1ULL << D1);
-    white_king    = (1ULL << E1);
-    white_pawns   = 0x000000000000FF00ULL;
+    board->white_rooks   = (1ULL << A1) | (1ULL << H1);
+    board->white_knights = (1ULL << B1) | (1ULL << G1);
+    board->white_bishops = (1ULL << C1) | (1ULL << F1);
+    board->white_queen   = (1ULL << D1);
+    board->white_king    = (1ULL << E1);
+    board->white_pawns   = 0x000000000000FF00ULL;
 
     // Black
-    black_rooks   = (1ULL << A8) | (1ULL << H8);
-    black_knights = (1ULL << B8) | (1ULL << G8);
-    black_bishops = (1ULL << C8) | (1ULL << F8);
-    black_queen   = (1ULL << D8);
-    black_king    = (1ULL << E8);
-    black_pawns   = 0x00FF000000000000ULL;
+    board->black_rooks   = (1ULL << A8) | (1ULL << H8);
+    board->black_knights = (1ULL << B8) | (1ULL << G8);
+    board->black_bishops = (1ULL << C8) | (1ULL << F8);
+    board->black_queen   = (1ULL << D8);
+    board->black_king    = (1ULL << E8);
+    board->black_pawns   = 0x00FF000000000000ULL;
 }
 
 // Print function
-void print_board(void) {
+void print_board(ChessBoard *board) {
     printf("\n  +-----------------+\n");
     
     // Loop through ranks from 8 down to 1
@@ -70,20 +72,20 @@ void print_board(void) {
             char piece = '.'; // Default empty square character
 
             // Check White pieces (Uppercase)
-            if (white_pawns & bit)     piece = 'P';
-            else if (white_rooks & bit)   piece = 'R';
-            else if (white_knights & bit) piece = 'N';
-            else if (white_bishops & bit) piece = 'B';
-            else if (white_queen & bit)   piece = 'Q';
-            else if (white_king & bit)    piece = 'K';
+            if (board->white_pawns & bit)     piece = 'P';
+            else if (board->white_rooks & bit)   piece = 'R';
+            else if (board->white_knights & bit) piece = 'N';
+            else if (board->white_bishops & bit) piece = 'B';
+            else if (board->white_queen & bit)   piece = 'Q';
+            else if (board->white_king & bit)    piece = 'K';
             
             // Check Black pieces (Lowercase)
-            else if (black_pawns & bit)   piece = 'p';
-            else if (black_rooks & bit)   piece = 'r';
-            else if (black_knights & bit) piece = 'n';
-            else if (black_bishops & bit) piece = 'b';
-            else if (black_queen & bit)   piece = 'q';
-            else if (black_king & bit)    piece = 'k';
+            else if (board->black_pawns & bit)   piece = 'p';
+            else if (board->black_rooks & bit)   piece = 'r';
+            else if (board->black_knights & bit) piece = 'n';
+            else if (board->black_bishops & bit) piece = 'b';
+            else if (board->black_queen & bit)   piece = 'q';
+            else if (board->black_king & bit)    piece = 'k';
 
             // Print the piece letter followed by a space for layout padding
             printf("%c ", piece);
@@ -98,8 +100,12 @@ void print_board(void) {
 
 int main() {
 
-    init_starting_position();
-    print_board();
+    ChessBoard *board = malloc(sizeof(ChessBoard));  // board now points to real memory
+
+    init_starting_position(board);
+    print_board(board);
+
+    free(board);
     
     // Keep track of whether the king may castle on either side
     int black_castle_king = 0;
