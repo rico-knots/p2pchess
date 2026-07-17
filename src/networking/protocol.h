@@ -4,6 +4,7 @@
 #include "packets.h"
 int send_packed();
 
-char *serialize_packet(ChessPacket *packet, int *len);
+char *serialize_packet(Packet *packet, int *len);
+char *deserialize_packet(Packet *packet, int *len);
 
 #endif

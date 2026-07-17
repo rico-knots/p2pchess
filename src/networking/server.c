@@ -8,8 +8,9 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/socket.h>
-#include <time.h>
 #include <unistd.h>
+
+#include "../chess.h"
 
 #define PORT 8080
 
@@ -23,7 +24,10 @@ void *handle_client(void *arg) {
     char buffer[1024];
     ssize_t valread;
 
-    struct timespec ts = {0, 100 * 1000 * 1000 * 20}; // 2000ms
+    ChessBoard *board = malloc(sizeof(ChessBoard));
+
+    // init_starting_position(board);
+    print_board(board);
 
     while(1) {
         memset(buffer, 0, 1024 - 1);
@@ -34,12 +38,9 @@ void *handle_client(void *arg) {
         printf("\x1B[33m<server>\x1B[0m Echoing back: %s\n", buffer);
         printf("\x1B[33m<server>\x1B[0m Size of received on server: %ld\n", valread);
         send(new_socket, buffer, valread, 0);
-
-        nanosleep(&ts, NULL);
-
-        send(new_socket, "Hello there!!", sizeof("Hello there!!"), 0);
     }
     close(new_socket);
+    free(board);
     return NULL;
 }
 

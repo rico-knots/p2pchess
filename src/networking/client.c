@@ -86,6 +86,7 @@ int read_socket(char buffer[], struct pollfd pfds[]) {
         }
     
         printf("\x1B[35m<client>\x1B[0m Received: %s\n", buffer);
+        
         return valread;
     }
 

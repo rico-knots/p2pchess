@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 // Serialization format: packet fields seperated by semicolon
 // Example move packet: "1;18;26;0;30000" -> type;from;to;promotion;time_left
 
 // Returns 0 on error
-char *serialize_packet(ChessPacket *packet, int *len) {
-    char buff[256];
+char *serialize_packet(Packet *packet, int *len) {
+    char buff[1024];
+    int pos;
 
     switch(packet->type) {
         case PKT_MOVE:
@@ -26,7 +28,7 @@ char *serialize_packet(ChessPacket *packet, int *len) {
             pos += snprintf(buff + pos, sizeof(buff) - pos, "%d;", packet->type);
             
             for (int i = 0; i < 12; i++) {
-                pos += snprintf(buff + pos, sizeof(buff) - pos, "%lu;", packet->state.boards[i]);
+                pos += snprintf(buff + pos, sizeof(buff) - pos, "%" PRIu64 ";", packet->state.boards[i]);
             }
             
             pos += snprintf(buff + pos, sizeof(buff) - pos, "%d;%d;%d;%d",
@@ -45,16 +47,21 @@ char *serialize_packet(ChessPacket *packet, int *len) {
         default: return NULL;
     }
 
-    if (*len < 0 || *len >= (int)sizeof(buff)) return NULL;
+    if (pos < 0 || pos >= (int)sizeof(buff) - 1) return NULL;
+
+    // Mark the end of a packet with "\n" -> needed for stream may not send the full string at once
+    buff[pos] = '\n';
+    pos++;
+    buff[pos] = '\0';
 
     // Alloc the needed space for the result
     char *result = malloc(*len + 1); // + 1 for the null terminator
-
     if (!result) return NULL;
 
     // Copy over the value of result to the allocated memory
     memcpy(result, buff, *len + 1);
 
     // Return said allocated piece of memory
+    *len = pos;
     return result;
 }
