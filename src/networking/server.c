@@ -17,103 +17,103 @@
 
 // Replace this the poll() eventually!
 void *handle_client(void *arg) {
-    int new_socket = *(int *) arg;
-    free(arg);
+	int new_socket = *(int *)arg;
+	free(arg);
 
-    printf("\x1B[33m<server>\x1B[0m New connection: %d\n", new_socket);
+	printf("\x1B[33m<server>\x1B[0m New connection: %d\n", new_socket);
 
-    char buffer[256];
-    ssize_t valread;
+	char buffer[256];
+	ssize_t valread;
 
-    while(1) {
-        memset(buffer, 0, 256 - 1);
-        if ((valread = recv(new_socket, buffer, 256-1, 0)) <= 0) {
-            printf("\x1B[33m<server>\x1B[0m Client disconnected\n");
-            break;
-        }
+	while (1) {
+		memset(buffer, 0, 256 - 1);
+		if ((valread = recv(new_socket, buffer, 256 - 1, 0)) <= 0) {
+			printf("\x1B[33m<server>\x1B[0m Client disconnected\n");
+			break;
+		}
 
-        Packet pkt;
-        deserialize_packet((uint8_t *) buffer, valread, &pkt);
+		Packet pkt;
+		deserialize_packet((uint8_t *)buffer, valread, &pkt);
 
-        S2C_GameStartPacket *packet = (S2C_GameStartPacket *) &pkt;
-        
-        printf("\x1B[33m<server>\x1B[0m Received packet type: %d\n", pkt.header.type);
-        printf("\x1B[33m<server>\x1B[0m Received time: %d\n", packet->time_control_ms);
-        printf("\x1B[33m<server>\x1B[0m Received name: %s\n", packet->opponent_name);
-        printf("\x1B[33m<server>\x1B[0m Size of received on server: %ld\n", valread);
-    }
-    close(new_socket);
-    return NULL;
+		S2C_GameStartPacket *packet = (S2C_GameStartPacket *)&pkt;
+
+		printf("\x1B[33m<server>\x1B[0m Received packet type: %d\n", pkt.header.type);
+		printf("\x1B[33m<server>\x1B[0m Received time: %d\n", packet->time_control_ms);
+		printf("\x1B[33m<server>\x1B[0m Received name: %s\n", packet->opponent_name);
+		printf("\x1B[33m<server>\x1B[0m Size of received on server: %ld\n", valread);
+	}
+	close(new_socket);
+	return NULL;
 }
 
-int main(int argc, char const* argv[]) {
-    int server_fd, new_socket;
-    struct sockaddr_in address;
-    int opt = 1;
-    socklen_t addrlen = sizeof(address);
+int main(int argc, char const *argv[]) {
+	int server_fd, new_socket;
+	struct sockaddr_in address;
+	int opt = 1;
+	socklen_t addrlen = sizeof(address);
 
-    char const* passcode = argv[1];
-    if (passcode == NULL) {
-        perror("Supply a passcode!\n");
-        exit(EXIT_FAILURE);
-        return 1;
-    }
-    
-    printf("\x1B[33m<server>\x1B[0m Passcode: %s\n", passcode);
+	char const *passcode = argv[1];
+	if (passcode == NULL) {
+		perror("Supply a passcode!\n");
+		exit(EXIT_FAILURE);
+		return 1;
+	}
 
-    /*
-        AF_INET = IPV4 | AF_LOCAL = LAN | AF_INET6 IPV6
-        SOCK_STREAM = TCP connection | SOCK_DGRA = UDP connection
-        protocol 0 = IP = internet protocol
-    */
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
-    
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("getsockopt");
-        exit(EXIT_FAILURE);
-    }
-    
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
-    
-    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    if (listen(server_fd, 3) < 0) {
-        perror("listen failed");
-        exit(EXIT_FAILURE);
-    }
+	printf("\x1B[33m<server>\x1B[0m Passcode: %s\n", passcode);
 
-    // Handle incoming connections
-    while(1) {
-        if ((new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen)) < 0) {
-            perror("accept");
-            continue;
-        }
+	/*
+		AF_INET = IPV4 | AF_LOCAL = LAN | AF_INET6 IPV6
+		SOCK_STREAM = TCP connection | SOCK_DGRA = UDP connection
+		protocol 0 = IP = internet protocol
+	*/
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		perror("socket failed");
+		exit(EXIT_FAILURE);
+	}
 
-        // heap allocate a copy of the new socket
-        int *sock_ptr = malloc(sizeof(int));
-        *sock_ptr = new_socket;
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+		perror("getsockopt");
+		exit(EXIT_FAILURE);
+	}
 
-        // Create thread
-        pthread_t tid;
-        if (pthread_create(&tid, NULL, handle_client, sock_ptr) != 0) {
-            perror("pthread create");
-            free(sock_ptr);
-            close(new_socket);
-            continue;
-        }
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(PORT);
 
-        pthread_detach(tid);
-    }
-            
-    // closing the listening socket
-    close(server_fd);
-    
-    return 0;
+	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+		perror("bind failed");
+		exit(EXIT_FAILURE);
+	}
+	if (listen(server_fd, 3) < 0) {
+		perror("listen failed");
+		exit(EXIT_FAILURE);
+	}
+
+	// Handle incoming connections
+	while (1) {
+		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, &addrlen)) < 0) {
+			perror("accept");
+			continue;
+		}
+
+		// heap allocate a copy of the new socket
+		int *sock_ptr = malloc(sizeof(int));
+		*sock_ptr = new_socket;
+
+		// Create thread
+		pthread_t tid;
+		if (pthread_create(&tid, NULL, handle_client, sock_ptr) != 0) {
+			perror("pthread create");
+			free(sock_ptr);
+			close(new_socket);
+			continue;
+		}
+
+		pthread_detach(tid);
+	}
+
+	// closing the listening socket
+	close(server_fd);
+
+	return 0;
 }
