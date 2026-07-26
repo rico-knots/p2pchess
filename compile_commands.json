@@ -1,0 +1,46 @@
+[
+  {
+    "file": "src/networking/client.c",
+    "arguments": [
+      "/usr/sbin/gcc",
+      "-o",
+      "out/client",
+      "src/networking/client.c"
+    ],
+    "directory": "/home/rico/Documents/projects/p2pchess",
+    "output": "out/client"
+  },
+  {
+    "file": "src/networking/protocol.c",
+    "arguments": [
+      "/usr/sbin/gcc",
+      "-o",
+      "out/client",
+      "src/networking/protocol.c"
+    ],
+    "directory": "/home/rico/Documents/projects/p2pchess",
+    "output": "out/client"
+  },
+  {
+    "file": "src/chess.c",
+    "arguments": [
+      "/usr/sbin/gcc",
+      "-o",
+      "out/client",
+      "src/chess.c"
+    ],
+    "directory": "/home/rico/Documents/projects/p2pchess",
+    "output": "out/client"
+  },
+  {
+    "file": "src/networking/server.c",
+    "arguments": [
+      "/usr/sbin/gcc",
+      "-o",
+      "out/server",
+      "src/networking/server.c"
+    ],
+    "directory": "/home/rico/Documents/projects/p2pchess",
+    "output": "out/server"
+  }
+]
