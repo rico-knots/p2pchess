@@ -60,7 +60,7 @@ typedef struct {
 
 typedef struct {
     PacketHeader header;
-    uint8_t your_side;
+    uint8_t your_side;      // 0=White, 1=Black
     uint32_t time_control_ms;
     char opponent_name[32];
 } S2C_GameStartPacket;
@@ -89,26 +89,29 @@ typedef struct {
 
 typedef struct {
     PacketHeader header;
-    uint64_t boards[12];     // WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK
     uint8_t turn;            // 0 = White, 1 = Black
     uint8_t castling_rights; // Bitmask (1=WK, 2=WQ, 4=BK, 8=BQ)
     uint8_t en_passant_sq;   // 0-63 index, or 255 if none
     uint8_t halfmove_clock;  // For the 50-move rule
+    uint64_t boards[12];     // WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK
 } S2C_SyncPacket;
 
 typedef struct {
     union {
         PacketHeader header;
+
         PingPacket ping;
+
         C2S_JoinPacket join;
         C2S_MovePacket move;
         C2S_ResignPacket resign;
 
+        S2C_GameStartPacket game_started;
         S2C_GameOverPacket gameover;
         S2C_MoveBroadcastPacket movebroadcast;
         S2C_IllegalMovePacket illegal_move;
         S2C_SyncPacket sync;
     };
-}  Packet;
+} Packet;
 
 #endif

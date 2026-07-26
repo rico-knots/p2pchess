@@ -1,6 +1,7 @@
 // https://www.geeksforgeeks.org/c/socket-programming-cc/
 
 #include <arpa/inet.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 
 #include "packets.h"
 #include "protocol.h"
+#include "../chess.h"
 
 #define PORT 8080
 
@@ -101,13 +103,19 @@ int read_socket(char buffer[], struct pollfd pfds[]) {
 int main(int argc, char const* argv[]) {
     int valread;
     struct pollfd pfds[1];
-    char buffer[1024];
+    char read_buffer[256];
+    uint8_t write_buffer[256];
 
-    ChessMovePacket move_packet = { 18, 26, 0, 30000 };
-    ChessPacket packet = { PKT_MOVE };
-    packet.move = move_packet;
+    PacketHeader header = { S2C_GAME_START };
+    C2S_MovePacket move_packet = { header, C4, C5, 0 };
+    C2S_JoinPacket join_packet = { header, "Rico" };
+    S2C_GameStartPacket start_packet = { header, 0, 30500, "Michi" };
+    Packet packet =  {};
+    // packet.move = move_packet;
+    // packet.join = join_packet;
+    packet.game_started = start_packet;
 
-    printf("\x1B[35m<client>\x1B[0m Packet type: %d\n", packet.type);
+    printf("\x1B[35m<client>\x1B[0m Packet type: %d\n", packet.header.type);
 
     if (argv[1] != NULL && strcmp(argv[1], "serv") == 0) {
         printf("\x1B[35m<client>\x1B[0m Starting server from client...\n");
@@ -125,19 +133,17 @@ int main(int argc, char const* argv[]) {
     pfds[0].fd = client_fd;
     pfds[0].events = POLLIN;
     
-    int len;
-    char *serialized = serialize_packet(&packet, &len);
+    size_t len;
+    if (serialize_packet(&packet, write_buffer, sizeof(write_buffer), &len) == 0) {
+        ssize_t n = send_all(client_fd, write_buffer, len);
+        printf("\x1B[35m<client>\x1B[0m Packet sent! size: %d\n", (int)n);
+    };
     
-    printf("\x1B[35m<client>\x1B[0m Serialized: %s\n", serialized);
-    printf("\x1B[35m<client>\x1B[0m Serialize size: %d\n", len);
-    
-    // subtract 1 for the null terminator at the end
-    int bytes_send = send(client_fd, serialized, len - 1, 0);
-    free(serialized);
+    printf("\x1B[35m<client>\x1B[0m Serialize size: %lu\n", len);
 
-    nanosleep(&ts, NULL);
-
-    int success = read_socket(buffer, pfds);
+    while(1) {
+        read_socket(read_buffer, pfds);
+    }
 
     // closing the connected socket
     close(client_fd);

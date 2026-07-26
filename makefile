@@ -6,5 +6,8 @@ build: src/**
 run: build
 	./out/server hello & ./out/client
 
+host: build
+	./out/client serv
+
 hello:
 	echo "Hello"

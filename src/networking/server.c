@@ -10,7 +10,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "../chess.h"
+#include "packets.h"
+#include "protocol.h"
 
 #define PORT 8080
 
@@ -21,26 +22,27 @@ void *handle_client(void *arg) {
 
     printf("\x1B[33m<server>\x1B[0m New connection: %d\n", new_socket);
 
-    char buffer[1024];
+    char buffer[256];
     ssize_t valread;
 
-    ChessBoard *board = malloc(sizeof(ChessBoard));
-
-    // init_starting_position(board);
-    print_board(board);
-
     while(1) {
-        memset(buffer, 0, 1024 - 1);
-        if ((valread = read(new_socket, buffer, 1024-1)) <= 0) {
+        memset(buffer, 0, 256 - 1);
+        if ((valread = recv(new_socket, buffer, 256-1, 0)) <= 0) {
             printf("\x1B[33m<server>\x1B[0m Client disconnected\n");
             break;
         }
-        printf("\x1B[33m<server>\x1B[0m Echoing back: %s\n", buffer);
+
+        Packet pkt;
+        deserialize_packet((uint8_t *) buffer, valread, &pkt);
+
+        S2C_GameStartPacket *packet = (S2C_GameStartPacket *) &pkt;
+        
+        printf("\x1B[33m<server>\x1B[0m Received packet type: %d\n", pkt.header.type);
+        printf("\x1B[33m<server>\x1B[0m Received time: %d\n", packet->time_control_ms);
+        printf("\x1B[33m<server>\x1B[0m Received name: %s\n", packet->opponent_name);
         printf("\x1B[33m<server>\x1B[0m Size of received on server: %ld\n", valread);
-        send(new_socket, buffer, valread, 0);
     }
     close(new_socket);
-    free(board);
     return NULL;
 }
 
