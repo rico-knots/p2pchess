@@ -10,7 +10,21 @@
 
 GLFWwindow* window;
 
-int init(int width, int height) {
+int width;
+int height;
+
+void resizeCallback(GLFWwindow* window, int w, int h) {
+    width = w;
+    height = h;
+    glViewport(0, 0, width, height);
+
+    printf("Resized window to %dx%d\n", width, height);
+}
+
+int init(int w, int h) {
+    width = w;
+    height = h;
+
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
 
     if (!glfwInit()){
@@ -37,6 +51,8 @@ int init(int width, int height) {
     printf("Loaded OpenGL %d.%d\n", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
     glViewport(0, 0, width, height);
     glClearColor(0, 0, 0, 1);
+
+    glfwSetFramebufferSizeCallback(window, resizeCallback);
 
     return 0;
 }
