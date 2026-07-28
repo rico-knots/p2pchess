@@ -7,7 +7,9 @@ run: build
 	./out/client
 
 run-window: build-glad
-	gcc src/window.c -lglfw -Lout/lib -lgl -o out/window
+	gcc src/window.c -lglfw -Lout/lib -lgl -lm -o out/window
+	cp -r src/shaders out/shaders
+	cp -r src/assets out/assets
 	./out/window
 
 build-glad:
