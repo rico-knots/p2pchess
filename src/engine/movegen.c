@@ -1,5 +1,5 @@
-#include "bitboard.h"
-#include "chess.c"
+#include "./bitboard.h"
+#include "./chess.c"
 
 U64 pawn_moves(U64 pawn, Side side) {
 	int double_moves = (side == WHITE && (pawn & RANK_2) > 0) || (side == BLACK && (pawn & RANK_7) > 0);

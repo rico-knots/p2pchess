@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "bitboard.h"
+#include "./bitboard.h"
 #include "chess.h"
 
 // Set first bit, shift it by the square number to the right square

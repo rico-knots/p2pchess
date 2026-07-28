@@ -22,12 +22,12 @@
     "output": "out/client"
   },
   {
-    "file": "src/chess.c",
+    "file": "src/engine/chess.c",
     "arguments": [
       "/usr/sbin/gcc",
       "-o",
       "out/client",
-      "src/chess.c"
+      "src/engine/chess.c"
     ],
     "directory": "/home/rico/Documents/projects/p2pchess",
     "output": "out/client"

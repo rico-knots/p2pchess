@@ -15,8 +15,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "../chess.h"
-#include "packets.h"
+#include "./packets.h"
 #include "protocol.h"
 
 #define PORT 8080
@@ -101,14 +100,11 @@ int read_socket(char buffer[], struct pollfd pfds[]) {
 }
 
 int main(int argc, char const *argv[]) {
-	int valread;
 	struct pollfd pfds[1];
 	char read_buffer[256];
 	uint8_t write_buffer[256];
 
 	PacketHeader header = {S2C_GAME_START};
-	C2S_MovePacket move_packet = {header, C4, C5, 0};
-	C2S_JoinPacket join_packet = {header, "Rico"};
 	S2C_GameStartPacket start_packet = {header, 0, 30500, "Michi"};
 	Packet packet = {};
 	// packet.move = move_packet;

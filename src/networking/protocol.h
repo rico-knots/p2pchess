@@ -2,8 +2,8 @@
 #define PROTOCOL_H_INCLUDED
 
 #include "packets.h"
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 int send_packed();

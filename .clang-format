@@ -8,8 +8,8 @@ UseTab: Always
 AccessModifierOffset: -4
 
 # header/using sort
-SortIncludes: CaseInsensitive
-SortUsingDeclarations: true
+# SortIncludes: true
+# SortUsingDeclarations: true
 
 # constructor initializer settings
 PackConstructorInitializers: Never
