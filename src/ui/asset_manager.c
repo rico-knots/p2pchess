@@ -14,7 +14,7 @@ char *cursor_location = "out/assets/mouse.png";
 
 char *piece_locations[2] = {
     "out/assets/pieces/white.png",
-    "out/assets/pieces/white.png"
+    "out/assets/pieces/black.png"
 };
 
 char *vert_path = "out/shaders/quad.vert";
@@ -81,10 +81,6 @@ ChessTextures load_textures(void) {
     return ct;
 }
 
-float assets_get_piece_texture_offset(Piece piece) {
-    return piece * 16.0f;
-}
-
 GLuint compile_shader(const char *path, GLenum type) {
 	char *src = readFile(path);
 	if (!src)
@@ -136,4 +132,8 @@ ChessTextures *assets_get_textures(void) {
 
 GLuint assets_get_shader_program(void) {
 	return shader_program;
+}
+
+float assets_get_piece_texture_offset(Piece piece) {
+    return piece * 16.0f;
 }

@@ -4,7 +4,39 @@
 
 GLuint quadVAO, quadVBO;
 
-void setupQuad() {
+unsigned int get_tile_from_pos(unsigned int x, unsigned int y) {
+	unsigned int xOffset = (int)x - (window_width / 2 - BOARD_SIZE / 2);
+	unsigned int yOffset = (int)y - (window_height / 2 - BOARD_SIZE / 2);
+
+	if (xOffset > BOARD_SIZE || yOffset > BOARD_SIZE) {
+		return 99;
+	}
+
+	unsigned int rank = 7 - (int)(yOffset / TILE_SIZE);
+	unsigned int file = (int)(xOffset / TILE_SIZE);
+
+	return 8 * rank + file;
+}
+
+int pos_from_tile(unsigned int tile, int *x, int *y, int flipped) {
+	if (tile > 63)
+		return -1;
+
+	unsigned int rank = tile / 8;
+	unsigned int file = tile % 8;
+
+	if (flipped) {
+		rank = 7 - rank;
+		file = 7 - file;
+	}
+
+	*x = (window_width / 2 - BOARD_SIZE / 2) + (int)(file * TILE_SIZE);
+	*y = (window_height / 2 - BOARD_SIZE / 2) + (int)((7 - rank) * TILE_SIZE);
+
+	return 0;
+}
+
+void setup_quad() {
 	// x, y, u, v
 	float vertices[] = {0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
 						1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
@@ -36,10 +68,10 @@ void setupQuad() {
 }
 
 void renderer_init() {
-    setupQuad();
+    setup_quad();
 }
 
-void drawSquare(float x, float y, float w, float h, Color color) {
+void draw_square(float x, float y, float w, float h, Color color) {
     GLuint shader_program = assets_get_shader_program();
 	glUseProgram(shader_program);
 
@@ -56,7 +88,7 @@ void drawSquare(float x, float y, float w, float h, Color color) {
 	glBindVertexArray(0);
 }
 
-void drawTexturedQuad(float x, float y, float w, float h, GLuint tex) {
+void draw_textured_quad(float x, float y, float w, float h, GLuint tex) {
     GLuint shader_program = assets_get_shader_program();
 	glUseProgram(shader_program);
 
@@ -79,7 +111,7 @@ void drawTexturedQuad(float x, float y, float w, float h, GLuint tex) {
 	glBindVertexArray(0);
 }
 
-void drawSpriteFromSheet(float x, float y, float w, float h, Texture sheet,
+void draw_sprite_from_sheet(float x, float y, float w, float h, Texture sheet,
 						 float srcX, float srcY, float srcW, float srcH) {
     GLuint shader_program = assets_get_shader_program();
 	glUseProgram(shader_program);
@@ -103,4 +135,29 @@ void drawSpriteFromSheet(float x, float y, float w, float h, Texture sheet,
 	glBindVertexArray(quadVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void draw_chess_pieces(const GameState *board, int x, int y, Side your_side) {
+	ChessTextures *textures = assets_get_textures();
+
+	int squares[64];
+	int count, tileX, tileY;
+	float offsetX;
+	
+	for (int i = 0; i < 12; i++) {
+		Side side = (int)(i / 6);
+		Piece piece = (int)(i % 6);
+
+		BitBoard bb = board->pieces[side][piece];
+		Texture tex = textures->piece_textures[side];
+		offsetX = assets_get_piece_texture_offset(piece);
+
+		get_squares(bb, squares, &count);
+
+		for (int j = 0; j < count; j++) {
+			int square = squares[j];
+			pos_from_tile(square, &tileX, &tileY, your_side);
+			draw_sprite_from_sheet(tileX + 10, tileY + 10, TILE_SIZE - 20, TILE_SIZE - 20, tex, offsetX, 0, 16, 16);	
+		}
+	}
 }

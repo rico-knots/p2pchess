@@ -4,8 +4,8 @@
 #include "chess.h"
 
 void init_starting_position(GameState *board) {
-	board->pieces[WHITE][PAWN] = RANK_7;
-	board->pieces[BLACK][PAWN] = RANK_1;
+	board->pieces[WHITE][PAWN] = RANK_2;
+	board->pieces[BLACK][PAWN] = RANK_7;
 
 	Piece back_rank_order[8] = {
 		ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK
@@ -13,7 +13,7 @@ void init_starting_position(GameState *board) {
 
 	for (int file = 0; file < 8; file++) {
 		SET_BIT(board->pieces[WHITE][back_rank_order[file]], 0 + file);
-		SET_BIT(board->pieces[BLACK][back_rank_order[file]], 48 + file);
+		SET_BIT(board->pieces[BLACK][back_rank_order[file]], 56 + file);
 	}
 }
 

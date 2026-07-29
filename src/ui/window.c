@@ -12,39 +12,8 @@
 #include "./window.h"
 #include "./renderer.h"
 
-#define WINDOW_NAME "Chess"
-#define BOARD_SIZE	640
-#define TILE_SIZE	(int)(BOARD_SIZE / 8)
-
 GLFWwindow *window;
 int window_width, window_height;
-
-unsigned int get_tile_from_pos(unsigned int x, unsigned int y) {
-	unsigned int xOffset = (int)x - (window_width / 2 - BOARD_SIZE / 2);
-	unsigned int yOffset = (int)y - (window_height / 2 - BOARD_SIZE / 2);
-
-	if (xOffset > BOARD_SIZE || yOffset > BOARD_SIZE) {
-		return 99;
-	}
-
-	unsigned int rank = 7 - (int)(yOffset / TILE_SIZE);
-	unsigned int file = (int)(xOffset / TILE_SIZE);
-
-	return 8 * rank + file;
-}
-
-int pos_from_tile(unsigned int tile, int *x, int *y) {
-	if (tile > 63)
-		return -1;
-
-	unsigned int rank = tile / 8;
-	unsigned int file = tile % 8;
-
-	*x = (window_width / 2 - BOARD_SIZE / 2) + (int)(file * TILE_SIZE);
-	*y = (window_height / 2 - BOARD_SIZE / 2) + (int)((7 - rank) * TILE_SIZE);
-
-	return 0;
-}
 
 void resizeCallback(GLFWwindow *windo, int w, int h) {
 	window_width = w;
@@ -117,67 +86,30 @@ void window_begin_frame() {
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void window_end_frame() {
-	// Drawing
+void window_draw(GameState *game_state) {
 	ChessTextures *tex = assets_get_textures();
 
 	double mx, my;
 	glfwGetCursorPos(window, &mx, &my);
 
-	drawTexturedQuad(((float)window_width / 2 - BOARD_SIZE / 2.0), (float)window_height / 2 - BOARD_SIZE / 2.0, BOARD_SIZE, BOARD_SIZE, tex->board_texture.texture);
+	draw_textured_quad(((float)window_width / 2 - BOARD_SIZE / 2.0), (float)window_height / 2 - BOARD_SIZE / 2.0, BOARD_SIZE, BOARD_SIZE, tex->board_texture.texture);
 
-	float drawX = (float)window_width / 2 - BOARD_SIZE / 2.0 + 10;
-
-	for (int i = 0; i < 8; i++) {
-		drawSpriteFromSheet(drawX + TILE_SIZE * i, (float)window_height / 2 - BOARD_SIZE / 2.0 + 10 + TILE_SIZE, 60, 60, tex->piece_textures[1], assets_get_piece_texture_offset(PAWN), 0, 16, 16);
-		drawSpriteFromSheet(drawX + TILE_SIZE * i, (float)window_height / 2 - BOARD_SIZE / 2.0 + 10 + (TILE_SIZE * 6), 60, 60, tex->piece_textures[0], assets_get_piece_texture_offset(PAWN), 0, 16, 16);
-	}
-	drawSpriteFromSheet(drawX + TILE_SIZE, (float)window_height / 2 - BOARD_SIZE / 2.0 + 10, 60, 60, tex->piece_textures[1], assets_get_piece_texture_offset(KNIGHT), 0, 16, 16);
-	drawSpriteFromSheet(drawX + TILE_SIZE * 6, (float)window_height / 2 - BOARD_SIZE / 2.0 + 10, 60, 60, tex->piece_textures[1], assets_get_piece_texture_offset(KNIGHT), 0, 16, 16);
-
-	int kx, ky;
-	pos_from_tile(4, &kx, &ky);
-
-	drawSpriteFromSheet(kx + 10, ky + 10, 60, 60, tex->piece_textures[0], 80, 0, 16, 16);
+	draw_chess_pieces(game_state, window_width / 2 - BOARD_SIZE / 2, window_height / 2 - BOARD_SIZE / 2, BLACK);
 
 	int px, py = 0;
-	if (pos_from_tile(get_tile_from_pos(mx, my), &px, &py) == 0)
-		drawSquare(px, py, TILE_SIZE, TILE_SIZE, (Color){0, 0, 0, 0.25});
+	if (pos_from_tile(get_tile_from_pos(mx, my), &px, &py, 0) == 0)
+		draw_square(px, py, TILE_SIZE, TILE_SIZE, (Color){0, 0, 0, 0.25});
 
-	drawTexturedQuad(mx, my, 32, 32, tex->cursor_texture.texture);
+	draw_textured_quad(mx, my, 32, 32, tex->cursor_texture.texture);
 
+}
+
+void window_end_frame() {
 	glfwSwapBuffers(window);
 }
 
 void window_shutdown() {
 	glfwTerminate();
 }
-
-// int main() {
-// 	if (window_init(1280, 720) < 0) {
-// 		return 1;
-// 	}
-
-// 	while (!glfwWindowShouldClose(window)) {
-// 		glfwPollEvents();
-
-// 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-// 			glfwSetWindowShouldClose(window, 1);
-// 		}
-
-// 		double mx, my;
-// 		glfwGetCursorPos(window, &mx, &my);
-
-// 		if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-// 			get_tile_from_pos(mx, my);
-// 		}
-
-// 		glClear(GL_COLOR_BUFFER_BIT);
-// 		glfwSwapBuffers(window);
-// 	}
-
-// 	glfwTerminate();
-// 	return 0;
-// }
 
 #endif

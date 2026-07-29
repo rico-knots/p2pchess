@@ -45,8 +45,8 @@ typedef enum {
 
 typedef enum {
 	PAWN = 0,
-	ROOK,
 	KNIGHT,
+	ROOK,
 	BISHOP,
 	QUEEN,
 	KING,
@@ -74,5 +74,6 @@ typedef struct {
 } GameState;
 
 void board_to_array(GameState board, BitBoard *buf);
+void get_squares(BitBoard bb, int *squares, int *count);  
 
 #endif
