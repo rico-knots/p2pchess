@@ -18,12 +18,17 @@ unsigned int get_tile_from_pos(unsigned int x, unsigned int y) {
 	return 8 * rank + file;
 }
 
-int pos_from_tile(unsigned int tile, int *x, int *y) {
+int pos_from_tile(unsigned int tile, int *x, int *y, int flipped) {
 	if (tile > 63)
 		return -1;
 
 	unsigned int rank = tile / 8;
 	unsigned int file = tile % 8;
+
+	if (flipped) {
+		rank = 7 - rank;
+		file = 7 - file;
+	}
 
 	*x = (window_width / 2 - BOARD_SIZE / 2) + (int)(file * TILE_SIZE);
 	*y = (window_height / 2 - BOARD_SIZE / 2) + (int)((7 - rank) * TILE_SIZE);
@@ -132,7 +137,7 @@ void draw_sprite_from_sheet(float x, float y, float w, float h, Texture sheet,
 	glBindVertexArray(0);
 }
 
-void draw_chess_pieces(const GameState *board, int x, int y) {
+void draw_chess_pieces(const GameState *board, int x, int y, Side your_side) {
 	ChessTextures *textures = assets_get_textures();
 
 	int squares[64];
@@ -151,9 +156,8 @@ void draw_chess_pieces(const GameState *board, int x, int y) {
 
 		for (int j = 0; j < count; j++) {
 			int square = squares[j];
-			pos_from_tile(square, &tileX, &tileY);
+			pos_from_tile(square, &tileX, &tileY, your_side);
 			draw_sprite_from_sheet(tileX + 10, tileY + 10, TILE_SIZE - 20, TILE_SIZE - 20, tex, offsetX, 0, 16, 16);	
 		}
-		
 	}
 }

@@ -94,10 +94,10 @@ void window_draw(GameState *game_state) {
 
 	draw_textured_quad(((float)window_width / 2 - BOARD_SIZE / 2.0), (float)window_height / 2 - BOARD_SIZE / 2.0, BOARD_SIZE, BOARD_SIZE, tex->board_texture.texture);
 
-	draw_chess_pieces(game_state, window_width / 2 - BOARD_SIZE / 2, window_height / 2 - BOARD_SIZE / 2);
+	draw_chess_pieces(game_state, window_width / 2 - BOARD_SIZE / 2, window_height / 2 - BOARD_SIZE / 2, BLACK);
 
 	int px, py = 0;
-	if (pos_from_tile(get_tile_from_pos(mx, my), &px, &py) == 0)
+	if (pos_from_tile(get_tile_from_pos(mx, my), &px, &py, 0) == 0)
 		draw_square(px, py, TILE_SIZE, TILE_SIZE, (Color){0, 0, 0, 0.25});
 
 	draw_textured_quad(mx, my, 32, 32, tex->cursor_texture.texture);
