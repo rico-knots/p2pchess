@@ -1,11 +1,12 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#include "chess.h"
+#include <stdint.h>
+typedef uint64_t BitBoard;
 
-#define set_bit(bitboard, square)	((bitboard) |= (1ULL << (square)))
-#define get_bit(bitboard, square)	((bitboard) & (1ULL << (square)))
-#define clear_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
+#define SET_BIT(bitboard, square)	((bitboard) |= (1ULL << (square)))
+#define GET_BIT(bitboard, square)	((bitboard) & (1ULL << (square)))
+#define CLEAR_BIT(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
 
 #define NOT_A_FILE	0xfefefefefefefefeULL
 #define NOT_H_FILE	0x7f7f7f7f7f7f7f7fULL
@@ -37,6 +38,41 @@ enum squares {
 };
 // clang-format off
 
-void board_to_array(ChessBoard board, U64 *buf);
+typedef enum {
+	WHITE = 0,
+	BLACK = 1
+} Side;
+
+typedef enum {
+	PAWN = 0,
+	ROOK,
+	KNIGHT,
+	BISHOP,
+	QUEEN,
+	KING,
+	NUMBER_OF_PIECES
+} Piece;
+
+typedef struct {
+	Side side;
+	Piece piece;
+} Occupation;
+
+typedef struct {
+	BitBoard pieces[2][NUMBER_OF_PIECES];
+
+	Side turn;
+
+	uint8_t white_can_castle_kingside;
+	uint8_t white_can_castle_queenside;
+	uint8_t black_can_castle_kingside;
+	uint8_t black_can_castle_queenside;
+
+	int en_pessant_tile;
+	int halfmove_clock;
+	int full_move_number;
+} GameState;
+
+void board_to_array(GameState board, BitBoard *buf);
 
 #endif
