@@ -2,6 +2,7 @@
 #define BITBOARD_H
 
 #include <stdint.h>
+#include <time.h>
 typedef uint64_t BitBoard;
 
 #define SET_BIT(bitboard, square)	((bitboard) |= (1ULL << (square)))
@@ -71,6 +72,8 @@ typedef struct {
 	int en_pessant_tile;
 	int halfmove_clock;
 	int full_move_number;
+
+	time_t last_updated;
 } GameState;
 
 void board_to_array(GameState board, BitBoard *buf);

@@ -12,7 +12,7 @@ extern int window_width, window_height;
 int window_init(int width, int height);
 int window_should_close();
 void window_begin_frame();
-void window_draw(GameState *game_state);
+void window_draw(GameState *game_state, const char *name);
 void window_end_frame();
 void window_shutdown();
 

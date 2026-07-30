@@ -4,10 +4,15 @@
 #include "./asset_manager.h"
 #include <sys/types.h>
 
-#include "asset_manager.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "../include/stb/stb_image.h"
+#undef STB_IMAGE_IMPLEMENTATION
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "../include/stb/stb_truetype.h"
+#undef STB_TRUETYPE_IMPLEMENTATION
+
+#include "asset_manager.h"
 
 char *board_location = "out/assets/board.png";
 char *cursor_location = "out/assets/mouse.png";
@@ -17,14 +22,16 @@ char *piece_locations[2] = {
     "out/assets/pieces/black.png"
 };
 
+char *font_path = "out/assets/font.ttf";
+
 char *vert_path = "out/shaders/quad.vert";
 char *frag_path = "out/shaders/quad.frag";
 
-
-static GLuint shader_program;
 static ChessTextures textures;
+static Font font;
+static GLuint shader_program;
 
-char *readFile(const char *path) {
+char *read_file(const char *path) {
 	FILE *f = fopen(path, "rb");
 	if (!f) {
 		printf("Couldnt not open %s\n", path);
@@ -40,8 +47,8 @@ char *readFile(const char *path) {
 	return buf;
 }
 
-Texture load_texture(char *path) {
-	Texture tex = {};
+Texture load_texture(const char *path) {
+	Texture tex = {0};
 
 	glGenTextures(1, &tex.texture);
 	glBindTexture(GL_TEXTURE_2D, tex.texture);
@@ -81,8 +88,48 @@ ChessTextures load_textures(void) {
     return ct;
 }
 
+Font load_font(const char *path, float pixel_height) {
+	Font out_font = {0};
+	out_font.atlas_width = ATLAS_W;
+	out_font.atlas_height = ATLAS_H;
+	out_font.line_height = pixel_height;
+
+	char *ttf_buffer = read_file(path);
+	if (!ttf_buffer) {
+		printf("Failed to load font file: %s\n", font_path);
+		return out_font;
+	}
+
+	unsigned char *atlas_bitmap = malloc(ATLAS_W * ATLAS_H);
+
+	int result = stbtt_BakeFontBitmap(
+		(unsigned char *)ttf_buffer,
+		0, pixel_height,
+		atlas_bitmap,
+		ATLAS_W, ATLAS_H,
+		FIRST_CHAR, NUM_CHARS,
+		out_font.char_data);
+
+	if (result <= 0)
+		printf("Font baking failed or atlas too small (result: %d)\n", result);
+
+	glGenTextures(1, &out_font.texture);
+	glBindTexture(GL_TEXTURE_2D, out_font.texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, ATLAS_W, ATLAS_H, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_bitmap);
+
+	free(atlas_bitmap);
+	free(ttf_buffer);
+
+	return out_font;
+}
+
 GLuint compile_shader(const char *path, GLenum type) {
-	char *src = readFile(path);
+	char *src = read_file(path);
 	if (!src)
 		return 0;
 	GLuint shader = glad_glCreateShader(type);
@@ -123,11 +170,16 @@ GLuint create_shader_program(const char *vertPath, const char *fragPath) {
 
 void assets_init(void) {
 	textures = load_textures();
+	font = load_font(font_path, 32);
 	shader_program = create_shader_program(vert_path, frag_path);
 }
 
 ChessTextures *assets_get_textures(void) {
 	return &textures;
+}
+
+Font *assets_get_font(void) {
+	return &font;
 }
 
 GLuint assets_get_shader_program(void) {

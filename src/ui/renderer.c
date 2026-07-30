@@ -1,6 +1,6 @@
-#include "./renderer.h"
 #include "asset_manager.h"
 #include "window.h"
+#include "./renderer.h"
 
 GLuint quadVAO, quadVBO;
 
@@ -81,6 +81,7 @@ void draw_square(float x, float y, float w, float h, Color color) {
 				(float)window_width, (float)window_height);
 	glUniform3f(glGetUniformLocation(shader_program, "uColor"), color.r, color.g, color.b);
 	glUniform1f(glGetUniformLocation(shader_program, "uAlpha"), color.a);
+	glUniform1i(glGetUniformLocation(shader_program, "uTextMode"), 0);
 	glUniform1i(glGetUniformLocation(shader_program, "uUseTexture"), 0);
 
 	glBindVertexArray(quadVAO);
@@ -108,6 +109,8 @@ void draw_textured_quad(float x, float y, float w, float h, GLuint tex) {
 
 	glBindVertexArray(quadVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glUniform1i(glGetUniformLocation(shader_program, "uUseTexture"), 0);
 	glBindVertexArray(0);
 }
 
@@ -134,10 +137,12 @@ void draw_sprite_from_sheet(float x, float y, float w, float h, Texture sheet,
 
 	glBindVertexArray(quadVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	glUniform1i(glGetUniformLocation(shader_program, "uUseTexture"), 0);
 	glBindVertexArray(0);
 }
 
-void draw_chess_pieces(const GameState *board, int x, int y, Side your_side) {
+void draw_chess_pieces(const GameState *game_state, Side your_side) {
 	ChessTextures *textures = assets_get_textures();
 
 	int squares[64];
@@ -148,7 +153,7 @@ void draw_chess_pieces(const GameState *board, int x, int y, Side your_side) {
 		Side side = (int)(i / 6);
 		Piece piece = (int)(i % 6);
 
-		BitBoard bb = board->pieces[side][piece];
+		BitBoard bb = game_state->pieces[side][piece];
 		Texture tex = textures->piece_textures[side];
 		offsetX = assets_get_piece_texture_offset(piece);
 
@@ -160,4 +165,54 @@ void draw_chess_pieces(const GameState *board, int x, int y, Side your_side) {
 			draw_sprite_from_sheet(tileX + 10, tileY + 10, TILE_SIZE - 20, TILE_SIZE - 20, tex, offsetX, 0, 16, 16);	
 		}
 	}
+}
+
+float get_string_width(Font *font, const char *text) {
+    float width = 0.0f;
+    for (const unsigned char *p = (const unsigned char *) text; *p; p++) {
+        if (*p < FIRST_CHAR || *p >= FIRST_CHAR + NUM_CHARS) continue;
+        
+        stbtt_bakedchar *b = &font->char_data[*p - FIRST_CHAR];
+        width += b->xadvance;
+    }
+    return width;
+}
+
+void draw_text(Font *font, const char *text, float x, float y, Color color) {
+	GLuint shader_program = assets_get_shader_program();
+	
+	glUseProgram(shader_program);
+	glUniform1i(glGetUniformLocation(shader_program, "uTextMode"), 1);
+	glUniform3f(glGetUniformLocation(shader_program, "uColor"), color.r, color.g, color.b);
+	glUniform1f(glGetUniformLocation(shader_program, "uAlpha"), color.a);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, font->texture);
+	glUniform1i(glGetUniformLocation(shader_program, "uTexture"), 0);
+	
+	glBindVertexArray(quadVAO);
+	
+	float cursorX = x, cursorY = y;
+	
+	for (const unsigned char *p = (const unsigned char *) text; *p; p++) {
+		if (*p < FIRST_CHAR || *p >= FIRST_CHAR + NUM_CHARS) continue;
+		
+		stbtt_aligned_quad q;
+		stbtt_GetBakedQuad(font->char_data, font->atlas_width, font->atlas_height, *p - FIRST_CHAR, &cursorX, &cursorY, &q, 1);
+		
+		float char_width = q.x1 - q.x0;
+		float char_height = q.y1 - q.y0;
+		
+		glUniform2f(glGetUniformLocation(shader_program, "uPos"), q.x0, q.y0);
+		glUniform2f(glGetUniformLocation(shader_program, "uSize"), char_width, char_height);
+
+
+		glUniform2f(glGetUniformLocation(shader_program, "uUVOffset"), q.s0, q.t1);
+    	glUniform2f(glGetUniformLocation(shader_program, "uUVSize"), q.s1 - q.s0, q.t0 - q.t1);
+		
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	}
+	
+	glUniform1i(glGetUniformLocation(shader_program, "uTextMode"), 0);
+	glBindVertexArray(0);
 }

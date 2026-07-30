@@ -7,6 +7,7 @@
 #include <GL/glext.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <time.h>
 
 #include "./asset_manager.h"
 #include "./window.h"
@@ -23,7 +24,6 @@ void resizeCallback(GLFWwindow *windo, int w, int h) {
 
 	printf("Resized window to %dx%d\n", w, h);
 }
-
 
 int window_init(int width, int height) {
 	glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
@@ -86,15 +86,26 @@ void window_begin_frame() {
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void window_draw(GameState *game_state) {
+void window_draw(GameState *game_state, const char *name) {
+	time_t now;
+	time(&now);
+
 	ChessTextures *tex = assets_get_textures();
 
+	draw_textured_quad(((window_width - BOARD_SIZE) / 2.0), (window_height - BOARD_SIZE) / 2.0, BOARD_SIZE, BOARD_SIZE, tex->board_texture.texture);
+	draw_chess_pieces(game_state, WHITE);
+
+	// Draw names and timers
+	draw_text(assets_get_font(), name, (window_width - BOARD_SIZE) / 2.0, (window_height + BOARD_SIZE) / 2.0 + 24, COLOR_WHITE);
+	float string_width = get_string_width(assets_get_font(), "10:00");
+	draw_text(assets_get_font(), "10:00", (window_width + BOARD_SIZE) / 2.0 - string_width, (window_height + BOARD_SIZE) / 2.0 + 24, COLOR_WHITE);
+}
+
+void window_end_frame() {
+	// Draww cursor, in end frame so its always at the top. Could i put it at the end of window_draw? yes, would i accidently draw something else over it and never notice? probably also yes.
+	ChessTextures *tex = assets_get_textures();
 	double mx, my;
 	glfwGetCursorPos(window, &mx, &my);
-
-	draw_textured_quad(((float)window_width / 2 - BOARD_SIZE / 2.0), (float)window_height / 2 - BOARD_SIZE / 2.0, BOARD_SIZE, BOARD_SIZE, tex->board_texture.texture);
-
-	draw_chess_pieces(game_state, window_width / 2 - BOARD_SIZE / 2, window_height / 2 - BOARD_SIZE / 2, BLACK);
 
 	int px, py = 0;
 	if (pos_from_tile(get_tile_from_pos(mx, my), &px, &py, 0) == 0)
@@ -102,9 +113,8 @@ void window_draw(GameState *game_state) {
 
 	draw_textured_quad(mx, my, 32, 32, tex->cursor_texture.texture);
 
-}
-
-void window_end_frame() {
+	// Draw to screen;	
+	
 	glfwSwapBuffers(window);
 }
 

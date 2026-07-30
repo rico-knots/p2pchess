@@ -31,5 +31,6 @@ GameState engine_new_game() {
 	board.halfmove_clock = 0; // Increase by 1 if half move did not capture a piece or move a pawn
 	board.full_move_number = 1;
 	
+	time(&board.last_updated);
 	return board;
 }
