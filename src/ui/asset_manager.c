@@ -14,18 +14,18 @@
 
 #include "asset_manager.h"
 
-char *board_location = "out/assets/board.png";
-char *cursor_location = "out/assets/mouse.png";
+char *board_location = "out/assets/textures/board.png";
+char *cursor_location = "out/assets/textures/mouse.png";
 
 char *piece_locations[2] = {
-    "out/assets/pieces/white.png",
-    "out/assets/pieces/black.png"
+    "out/assets/textures/pieces/white.png",
+    "out/assets/textures/pieces/black.png"
 };
 
 char *font_path = "out/assets/font.ttf";
 
-char *vert_path = "out/shaders/quad.vert";
-char *frag_path = "out/shaders/quad.frag";
+char *vert_path = "out/assets/shaders/quad.vert";
+char *frag_path = "out/assets/shaders/quad.frag";
 
 static ChessTextures textures;
 static Font font;

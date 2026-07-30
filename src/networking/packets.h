@@ -20,6 +20,14 @@ typedef enum {
 } PacketType;
 
 typedef enum {
+	NONE = 0,
+	QUEEN,
+	ROOK,
+	BISCHOP,
+	KNIGHT
+} Promotion;
+
+typedef enum {
 	ILLEGAL_UNKNOWN,
 	ILLEGAL_NOT_YOUR_TURN,
 	ILLEGAL_NO_PIECE,
@@ -39,7 +47,6 @@ typedef struct {
 } PingPacket;
 
 // C2S Packets
-
 typedef struct {
 	PacketHeader header;
 	char name[32];
@@ -49,7 +56,7 @@ typedef struct {
 	PacketHeader header;
 	uint8_t from_square;
 	uint8_t to_square;
-	uint8_t promotion; // 0=None, 1=Queen, 2=Rook, 3=Bishop, 4=Knight
+	Promotion promotion;
 } C2S_MovePacket;
 
 typedef struct {
@@ -57,7 +64,6 @@ typedef struct {
 } C2S_ResignPacket; // No need to provide the side to the server, server should know what color the sender is.
 
 // S2C packets
-
 typedef struct {
 	PacketHeader header;
 	uint8_t your_side; // 0=White, 1=Black
@@ -76,7 +82,7 @@ typedef struct {
 	uint8_t side; // 0=White, 1=Black
 	uint8_t from_square;
 	uint8_t to_square;
-	uint8_t promotion;	// 0=None, 1=Queen, 2=Rook, 3=Bishop, 4=Knight
+	Promotion promotion;
 	uint32_t time_left; // Remaining time for side who just moved in milliseconds
 } S2C_MoveBroadcastPacket;
 

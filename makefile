@@ -50,8 +50,7 @@ $(OUT)/chess: build-glad $(OBJ_GAME) $(OBJ_MAIN)
 	$(CC) $(OBJ_GAME) $(OBJ_MAIN) -o $@ $(LDFLAGS)
  
 run-window: $(OUT)/chess
-	@mkdir -p $(OUT)/shaders $(OUT)/assets
-	cp -r src/shaders/. $(OUT)/shaders/
+	@mkdir -p $(OUT)/assets
 	cp -r src/assets/. $(OUT)/assets/
 	./$(OUT)/chess
  
